@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบลูกค้า - CarCare</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+  function addCustomer() {
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    const serviceType = document.getElementById('serviceType').value;
+    const serviceDate = document.getElementById('serviceDate').value;
+
+    if (!name || !phone || !serviceType || !serviceDate) {
+      alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+      return;
+    }
+
+    const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    customers.push({ name, phone, serviceType, serviceDate });
+    localStorage.setItem('customers', JSON.stringify(customers));
+
+    alert("เพิ่มลูกค้าเรียบร้อย!");
+    loadCustomers(); // โหลดข้อมูลใหม่ในตาราง
+  }
+
+  function loadCustomers() {
+    const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    const tableBody = document.getElementById('customerTableBody');
+    tableBody.innerHTML = '';
+
+    customers.forEach((customer, index) => {
+      const newRow = document.createElement('tr');
+      newRow.classList.add('border-t');
+      newRow.innerHTML = `
+        <td class="py-2 px-4">${index + 1}</td>
+        <td class="py-2 px-4">${customer.name}</td>
+        <td class="py-2 px-4">${customer.phone}</td>
+        <td class="py-2 px-4">${customer.serviceType}</td>
+        <td class="py-2 px-4">${customer.serviceDate}</td>
+        <td class="py-2 px-4">
+          <button class="bg-red-500 text-white px-4 py-2 rounded-lg ml-2" onclick="deleteCustomer(${index})">ลบ</button>
+        </td>
+      `;
+      tableBody.appendChild(newRow);
+    });
+  }
+
+  function deleteCustomer(index) {
+    const customers = JSON.parse(localStorage.getItem('customers')) || [];
+    customers.splice(index, 1);
+    localStorage.setItem('customers', JSON.stringify(customers));
+    loadCustomers();
+  }
+
+  window.onload = () => {
+    loadCustomers();
+  };
+</script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Custom CSS เพื่อ Active Link ใน Sidebar */
+    .sidebar-active {
+      background-color: #E2E8F0; /* สีพื้นหลังเมื่อ Active */
+      color: #1E3A8A; /* สีตัวอักษรเมื่อ Active */
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+  <div class="flex min-h-screen">
+
+    <aside class="w-64 bg-white shadow-md hidden md:block">
+      <div class="p-4 text-2xl font-bold text-blue-600">CarCare</div>
+      <nav class="mt-6">
+        <ul class="space-y-2 text-gray-700">
+          <li>
+            <a href="index.html" class="flex items-center p-3 hover:bg-gray-100">
+              <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>หน้าหลัก
+            </a>
+            <li>
+                <a href="customers.html" class="flex items-center p-3 hover:bg-gray-100">
+                  <i data-lucide="users" class="w-5 h-5 mr-3"></i>ลูกค้า
+                </a>
+              </li>
+      
+              <li>
+                  <a href="Finance.html" class="flex items-center p-3 hover:bg-gray-100">
+                    <i data-lucide="calendar-clock" class="w-5 h-5 mr-3"></i>รายได้-รายจ่าย
+                  </a>
+                </li>
+              
+
+                <li>
+                  <a href="staff.html" class="flex items-center p-3 hover:bg-gray-100">
+                    <i data-lucide="calendar-clock" class="w-5 h-5 mr-3"></i>พนักงาน
+                  </a>
+                </li>
+      
+                <li>
+                  <a href="Reports.html" class="flex items-center p-3 hover:bg-gray-100">
+                    <i data-lucide="calendar-clock" class="w-5 h-5 mr-3"></i>รายงาน
+                  </a>
+                </li>
+      
+                <li>
+                  <a href="Settings.html" class="flex items-center p-3 hover:bg-gray-100">
+                    <i data-lucide="calendar-clock" class="w-5 h-5 mr-3"></i>ตั้งค่า
+                  </a>
+                </li>
+          </li>
+          
+          </ul>
+      </nav>
+    </aside>
+
+    <div class="flex-1 bg-gray-50">
+      <header class="flex items-center justify-between bg-white shadow px-6 py-4">
+        <div class="flex items-center space-x-4">
+          <input type="text" placeholder="ค้นหาลูกค้า..." class="px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500 w-80">
+          <button class="bg-blue-600 text-white px-4 py-2 rounded-lg">ค้นหา</button>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="bg-green-600 text-white px-4 py-2 rounded-lg" onclick="document.getElementById('addCustomerModal').style.display = 'block'">เพิ่มลูกค้า</button>
+        </div>
+      </header>
+
+      <div id="addCustomerModal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+          <h2 class="text-2xl font-semibold mb-4">เพิ่มลูกค้า</h2>
+          <form id="customerForm">
+            <div class="mb-4">
+              <label for="customerName" class="block text-sm font-medium text-gray-600">ชื่อลูกค้า</label>
+              <input type="text" id="customerName" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4">
+              <label for="customerPhone" class="block text-sm font-medium text-gray-600">เบอร์โทร</label>
+              <input type="tel" id="customerPhone" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4">
+              <label for="serviceType" class="block text-sm font-medium text-gray-600">ประเภทบริการ</label>
+              <select id="serviceType" class="w-full px-4 py-2 border rounded-lg" required>
+                <option value="">เลือกประเภทบริการ</option>
+                <option value="ล้างสี">ล้างสี</option>
+                <option value="อัดฉีด">อัดฉีด</option>
+                <option value="เคลือบสี">เคลือบสี</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label for="serviceDate" class="block text-sm font-medium text-gray-600">วันที่เข้ารับบริการ</label>
+              <input type="date" id="serviceDate" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="flex justify-end space-x-4">
+              <button type="button" onclick="document.getElementById('addCustomerModal').style.display = 'none'" class="bg-gray-500 text-white px-4 py-2 rounded-lg">ยกเลิก</button>
+              <button type="button" onclick="addCustomer()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">เพิ่มลูกค้า</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="editCustomerModal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+          <h2 class="text-2xl font-semibold mb-4">แก้ไขลูกค้า</h2>
+          <form id="editCustomerForm">
+            <div class="mb-4">
+              <label for="editCustomerName" class="block text-sm font-medium text-gray-600">ชื่อลูกค้า</label>
+              <input type="text" id="editCustomerName" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4">
+              <label for="editCustomerPhone" class="block text-sm font-medium text-gray-600">เบอร์โทร</label>
+              <input type="tel" id="editCustomerPhone" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="mb-4">
+              <label for="editServiceType" class="block text-sm font-medium text-gray-600">ประเภทบริการ</label>
+              <select id="editServiceType" class="w-full px-4 py-2 border rounded-lg" required>
+                <option value="">เลือกประเภทบริการ</option>
+                <option value="ล้างสี">ล้างสี</option>
+                <option value="อัดฉีด">อัดฉีด</option>
+                <option value="เคลือบสี">เคลือบสี</option>
+                <option value="อื่นๆ">อื่นๆ</option>
+              </select>
+            </div>
+            <div class="mb-4">
+              <label for="editServiceDate" class="block text-sm font-medium text-gray-600">วันที่เข้ารับบริการ</label>
+              <input type="date" id="editServiceDate" class="w-full px-4 py-2 border rounded-lg" required>
+            </div>
+            <div class="flex justify-end space-x-4">
+              <button type="button" onclick="document.getElementById('editCustomerModal').style.display = 'none'" class="bg-gray-500 text-white px-4 py-2 rounded-lg">ยกเลิก</button>
+              <button type="button" onclick="saveCustomer()" class="bg-blue-600 text-white px-4 py-2 rounded-lg">บันทึก</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div id="viewCustomerModal" class="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-96">
+          <h2 class="text-2xl font-semibold mb-4">ประวัติลูกค้า</h2>
+          <div class="mb-4">
+            <p><strong>ชื่อลูกค้า:</strong> <span id="viewCustomerName"></span></p>
+          </div>
+          <div class="mb-4">
+            <p><strong>เบอร์โทร:</strong> <span id="viewCustomerPhone"></span></p>
+          </div>
+          <div class="mb-4">
+            <p><strong>ประเภทบริการ:</strong> <span id="viewServiceType"></span></p>
+          </div>
+          <div class="mb-4">
+            <p><strong>วันที่เข้ารับบริการ:</strong> <span id="viewServiceDate"></span></p>
+          </div>
+          <div class="flex justify-end">
+            <button type="button" onclick="document.getElementById('viewCustomerModal').style.display = 'none'" class="bg-gray-500 text-white px-4 py-2 rounded-lg">ปิด</button>
+          </div>
+        </div>
+      </div>
+
+      <main class="p-6 space-y-8">
+        <h1 class="text-2xl font-semibold text-gray-800 mb-4">รายชื่อลูกค้าทั้งหมด</h1>
+
+        <div class="overflow-x-auto bg-white rounded-lg shadow">
+          <table class="min-w-full table-auto">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">#</th>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">ชื่อลูกค้า</th>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">เบอร์โทร</th>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">ประเภทบริการ</th>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">วันที่เข้ารับบริการ</th>
+                <th class="py-2 px-4 text-left text-sm font-medium text-gray-600">การกระทำ</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody">
+              </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <section class="bg-white p-6 rounded-lg shadow mb-6">
+  <form id="serviceForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+</html>

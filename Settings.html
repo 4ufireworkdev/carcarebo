@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ตั้งค่าทั่วไป - CarCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    window.onload = () => {
+      lucide.createIcons();
+    };
+
+    // ฟังก์ชันบันทึกการตั้งค่า
+    function saveSettings() {
+      const shopName = document.getElementById('shopName').value;
+      const shopLogo = document.getElementById('shopLogo').value;
+      const shopAddress = document.getElementById('shopAddress').value;
+      const shopPhone = document.getElementById('shopPhone').value;
+      const shopHours = document.getElementById('shopHours').value;
+      const language = document.getElementById('language').value;
+      const timezone = document.getElementById('timezone').value;
+      const currency = document.getElementById('currency').value;
+
+      // ตรวจสอบว่าข้อมูลร้านไม่ว่าง
+      if (!shopName || !shopAddress || !shopPhone || !shopHours) {
+        alert("กรุณากรอกข้อมูลร้านให้ครบถ้วน");
+        return;
+      }
+
+      // แสดงข้อมูลที่บันทึก (จำลองการบันทึก)
+      const settings = {
+        shopName,
+        shopLogo,
+        shopAddress,
+        shopPhone,
+        shopHours,
+        language,
+        timezone,
+        currency
+      };
+      console.log("บันทึกการตั้งค่า:", settings);
+
+      alert("บันทึกการตั้งค่าเรียบร้อย");
+
+      // ใน Production Code จริงๆ จะต้องส่งข้อมูลไปยัง Server เพื่อบันทึกใน Database
+    }
+  </script>
+  <style>
+    /* Custom CSS เพื่อ Active Link ใน Sidebar (ถ้าเพิ่ม Sidebar) */
+    .sidebar-active {
+      background-color: #E2E8F0;
+      /* สีพื้นหลังเมื่อ Active */
+      color: #1E3A8A;
+      /* สีตัวอักษรเมื่อ Active */
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+  <div class="min-h-screen p-6">
+    <header class="mb-6">
+      <h1 class="text-2xl font-bold text-gray-800">ตั้งค่าทั่วไป</h1>
+    </header>
+
+    <form class="bg-white p-6 rounded-lg shadow space-y-6" onsubmit="event.preventDefault(); saveSettings();">
+      <section>
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">ข้อมูลร้าน</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block mb-1 text-sm text-gray-600">ชื่อร้าน</label>
+            <input type="text" class="w-full border px-4 py-2 rounded-lg" id="shopName" required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-600">โลโก้</label>
+            <input type="file" class="w-full border px-4 py-2 rounded-lg" id="shopLogo">
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-600">ที่อยู่</label>
+            <input type="text" class="w-full border px-4 py-2 rounded-lg" id="shopAddress" required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-600">เบอร์โทร</label>
+            <input type="tel" class="w-full border px-4 py-2 rounded-lg" id="shopPhone" required>
+          </div>
+          <div>
+            <label class="block mb-1 text-sm text-gray-600">เวลาทำการ</label>
+            <input type="text" placeholder="เช่น 08:00 - 18:00" class="w-full border px-4 py-2 rounded-lg" id="shopHours" required>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">ภาษา</h2>
+        <select class="w-full border px-4 py-2 rounded-lg" id="language">
+          <option value="th">ไทย</option>
+          <option value="en">English</option>
+          <option value="zh">中文</option>
+        </select>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">โซนเวลา</h2>
+        <select class="w-full border px-4 py-2 rounded-lg" id="timezone">
+          <option value="Asia/Bangkok">Asia/Bangkok (GMT+7)</option>
+          <option value="UTC">UTC</option>
+          <option value="America/New_York">America/New_York (GMT-5)</option>
+        </select>
+      </section>
+
+      <section>
+        <h2 class="text-lg font-semibold text-gray-700 mb-4">สกุลเงิน</h2>
+        <select class="w-full border px-4 py-2 rounded-lg" id="currency">
+          <option value="THB">บาท (THB)</option>
+          <option value="USD">ดอลลาร์สหรัฐ (USD)</option>
+          <option value="EUR">ยูโร (EUR)</option>
+        </select>
+      </section>
+
+      <div class="flex justify-end">
+        <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg">บันทึกการตั้งค่า</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // ... (JavaScript Code)
+  </script>
+
+</body>
+
+</html>

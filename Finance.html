@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ระบบรายรับ-รายจ่าย - CarCare</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    // ฟังก์ชันเพิ่มรายการ
+    function addFinance() {
+      const detail = document.getElementById('financeDetail').value;
+      const amount = document.getElementById('financeAmount').value;
+      const type = document.getElementById('financeType').value;
+
+      if (!detail || !amount || !type) {
+        alert("กรุณากรอกข้อมูลให้ครบทุกช่อง");
+        return;
+      }
+
+      const finances = JSON.parse(localStorage.getItem('finances')) || [];
+      finances.push({ date: new Date().toLocaleDateString(), detail, amount: parseFloat(amount), type });
+      localStorage.setItem('finances', JSON.stringify(finances));
+
+      loadFinances();
+      document.getElementById('financeForm').reset();
+    }
+
+    function loadFinances() {
+      const finances = JSON.parse(localStorage.getItem('finances')) || [];
+      const tableBody = document.getElementById('financeTableBody');
+      tableBody.innerHTML = '';
+
+      finances.forEach(finance => {
+        const newRow = document.createElement('tr');
+        newRow.classList.add('border-t');
+        const amountColor = finance.type === 'income' ? 'text-green-600' : 'text-red-600';
+        newRow.innerHTML = `
+          <td class="px-4 py-2">${finance.date}</td>
+          <td class="px-4 py-2">${finance.detail}</td>
+          <td class="px-4 py-2 ${amountColor}">${finance.type === 'income' ? 'รายรับ' : 'รายจ่าย'}</td>
+          <td class="px-4 py-2">${finance.amount.toFixed(2)}</td>
+          <td class="px-4 py-2">
+            <button class="text-yellow-600" onclick="editFinance(this)">แก้ไข</button>
+            <button class="text-red-600 ml-2" onclick="deleteFinance(this)">ลบ</button>
+          </td>
+        `;
+        tableBody.appendChild(newRow);
+      });
+
+      calculateTotal();
+    }
+
+    window.onload = () => {
+      lucide.createIcons();
+      loadFinances();
+    };
+
+    async function downloadPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      const table = document.getElementById('financeTableBody');
+      let y = 10;
+
+      doc.text('รายงานรายรับ-รายจ่าย', 10, y);
+      y += 10;
+
+      Array.from(table.rows).forEach(row => {
+        const cells = Array.from(row.cells).map(cell => cell.innerText);
+        doc.text(cells.join(' | '), 10, y);
+        y += 10;
+      });
+
+      doc.save('finance-report.pdf');
+    }
+
+    function downloadExcel() {
+      const table = document.getElementById('financeTableBody');
+      const data = [['วันที่', 'รายละเอียด', 'ประเภท', 'จำนวนเงิน (บาท)']];
+
+      Array.from(table.rows).forEach(row => {
+        const cells = Array.from(row.cells).map(cell => cell.innerText);
+        data.push(cells);
+      });
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'รายงาน');
+
+      XLSX.writeFile(workbook, 'finance-report.xlsx');
+    }
+  </script>
+  <style>
+    /* Custom CSS เพื่อ Active Link ใน Sidebar (ถ้าเพิ่ม Sidebar) */
+    .sidebar-active {
+      background-color: #E2E8F0;
+      /* สีพื้นหลังเมื่อ Active */
+      color: #1E3A8A;
+      /* สีตัวอักษรเมื่อ Active */
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100">
+
+  <div class="min-h-screen p-6">
+    <header class="mb-6 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-gray-800">ระบบรายรับ - รายจ่าย</h1>
+      <div class="flex gap-4">
+        <button class="bg-green-600 text-white px-4 py-2 rounded-lg" onclick="downloadPDF()">ดาวน์โหลด PDF</button>
+        <button class="bg-blue-600 text-white px-4 py-2 rounded-lg" onclick="downloadExcel()">ดาวน์โหลด Excel</button>
+      </div>
+    </header>
+
+    <section class="bg-white p-4 rounded-lg shadow mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">วันที่เริ่มต้น</label>
+          <input type="date" class="w-full border px-4 py-2 rounded-lg" id="startDate">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">วันที่สิ้นสุด</label>
+          <input type="date" class="w-full border px-4 py-2 rounded-lg" id="endDate">
+        </div>
+        <div class="flex items-end">
+          <button class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full" onclick="filterFinance()">กรองข้อมูล</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white p-6 rounded-lg shadow mb-6">
+      <h2 class="text-xl font-semibold text-gray-700 mb-4">เพิ่มรายการ</h2>
+      <form id="financeForm" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <input type="text" placeholder="รายละเอียด" class="border px-4 py-2 rounded-lg" id="financeDetail" required>
+        <input type="number" placeholder="จำนวนเงิน" class="border px-4 py-2 rounded-lg" id="financeAmount" required>
+        <select class="border px-4 py-2 rounded-lg" id="financeType" required>
+          <option value="">เลือกประเภท</option>
+          <option value="income">รายรับ</option>
+          <option value="expense">รายจ่าย</option>
+        </select>
+        <button type="button" onclick="addFinance()" class="bg-green-600 text-white px-4 py-2 rounded-lg">เพิ่มรายการ</button>
+      </form>
+    </section>
+
+    <section class="bg-white rounded-lg shadow overflow-x-auto">
+      <table class="min-w-full table-auto">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">วันที่</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">รายละเอียด</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">ประเภท</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">จำนวนเงิน (บาท)</th>
+            <th class="px-4 py-2 text-left text-sm font-medium text-gray-600">การกระทำ</th>
+          </tr>
+        </thead>
+        <tbody id="financeTableBody">
+          <tr class="border-t">
+            <td class="px-4 py-2">2025-04-24</td>
+            <td class="px-4 py-2">ค่าล้างรถ</td>
+            <td class="px-4 py-2 text-green-600">รายรับ</td>
+            <td class="px-4 py-2">400.00</td>
+            <td class="px-4 py-2">
+              <button class="text-yellow-600" onclick="editFinance(this)">แก้ไข</button>
+              <button class="text-red-600 ml-2" onclick="deleteFinance(this)">ลบ</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <footer class="mt-6 p-4 bg-white rounded-lg shadow text-right text-lg font-bold text-gray-800">
+      ยอดสุทธิ: <span id="totalAmount" class="text-green-600">+3,000.00 บาท</span>
+    </footer>
+  </div>
+
+  <script>
+    // ฟังก์ชัน Filter ข้อมูล (ยังไม่สมบูรณ์)
+    function filterFinance() {
+      const startDate = document.getElementById('startDate').value;
+      const endDate = document.getElementById('endDate').value;
+      alert(`กรองข้อมูลระหว่าง ${startDate} ถึง ${endDate}`);
+      // Logic การ Filter ข้อมูลจริงจะซับซ้อนกว่านี้ และต้องใช้ Backend
+    }
+  </script>
+
+</body>
+
+</html>

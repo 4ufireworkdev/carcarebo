@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CarCare Admin Dashboard</title>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    function updateCharts() {
+      const customers = JSON.parse(localStorage.getItem('customers')) || [];
+
+      // นับจำนวนบริการแต่ละประเภท
+      const serviceCounts = customers.reduce((counts, customer) => {
+        counts[customer.serviceType] = (counts[customer.serviceType] || 0) + 1;
+        return counts;
+      }, {});
+
+      // เตรียมข้อมูลสำหรับกราฟ
+      const serviceLabels = Object.keys(serviceCounts);
+      const serviceData = Object.values(serviceCounts);
+
+      // อัปเดต Pie Chart (สัดส่วนประเภทบริการ)
+      const pieCtx = document.getElementById('pieChart').getContext('2d');
+      new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+          labels: serviceLabels,
+          datasets: [{
+            data: serviceData,
+            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6B7280'],
+          }]
+        }
+      });
+
+      // อัปเดต Bar Chart (รายได้ตามประเภทบริการ)
+      const serviceRevenue = customers.reduce((revenue, customer) => {
+        const servicePrices = {
+          "ล้างรถ": 500,
+          "อัดฉีด": 300,
+          "ทำภายในรถ": 800,
+          "เคลือบแก้ว": 2000,
+          "อื่นๆ": 1000
+        };
+        revenue[customer.serviceType] = (revenue[customer.serviceType] || 0) + (servicePrices[customer.serviceType] || 0);
+        return revenue;
+      }, {});
+
+      const revenueLabels = Object.keys(serviceRevenue);
+      const revenueData = Object.values(serviceRevenue);
+
+      const barCtx = document.getElementById('barChart').getContext('2d');
+      new Chart(barCtx, {
+        type: 'bar',
+        data: {
+          labels: revenueLabels,
+          datasets: [{
+            label: 'รายได้ (บาท)',
+            data: revenueData,
+            backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6B7280'],
+          }]
+        }
+      });
+
+      // อัปเดต Line Chart (รายได้รายวัน)
+      const dailyRevenue = customers.reduce((daily, customer) => {
+        const servicePrices = {
+          "ล้างรถ": 500,
+          "อัดฉีด": 300,
+          "ทำภายในรถ": 800,
+          "เคลือบแก้ว": 2000,
+          "อื่นๆ": 1000
+        };
+        const date = customer.serviceDate;
+        daily[date] = (daily[date] || 0) + (servicePrices[customer.serviceType] || 0);
+        return daily;
+      }, {});
+
+      const dailyLabels = Object.keys(dailyRevenue).sort(); // เรียงวันที่
+      const dailyData = dailyLabels.map(date => dailyRevenue[date]);
+
+      const lineCtx = document.getElementById('lineChart').getContext('2d');
+      new Chart(lineCtx, {
+        type: 'line',
+        data: {
+          labels: dailyLabels,
+          datasets: [{
+            label: 'รายได้รายวัน',
+            data: dailyData,
+            borderColor: '#6366F1',
+            backgroundColor: 'rgba(99, 102, 241, 0.2)',
+            fill: true,
+            tension: 0.3,
+          }]
+        }
+      });
+    }
+
+    function loadCustomerList() {
+      const customers = JSON.parse(localStorage.getItem('customers')) || [];
+      const tableBody = document.getElementById('pendingBookingsTableBody');
+      tableBody.innerHTML = ''; // ล้างข้อมูลเก่าในตาราง
+
+      customers.forEach((customer) => {
+        const newRow = document.createElement('tr');
+        newRow.classList.add('border-b', 'hover:bg-gray-50');
+        newRow.innerHTML = `
+          <td class="px-4 py-2">${customer.name}</td>
+          <td class="px-4 py-2">${customer.serviceType}</td>
+          <td class="px-4 py-2">${customer.serviceDate}</td>
+          <td class="px-4 py-2">09:00</td>
+          <td class="px-4 py-2 text-green-600">เสร็จสิ้น</td>
+        `;
+        tableBody.appendChild(newRow);
+      });
+    }
+
+    window.onload = () => {
+      loadCustomerList(); // โหลดข้อมูลลูกค้าเมื่อเปิดหน้า
+    };
+  </script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    /* Custom CSS สำหรับ active link */
+    .sidebar-active {
+      background-color: #E2E8F0;
+      color: #1E3A8A;
+      font-weight: bold;
+    }
+
+    .dark {
+      background-color: #1a202c;
+      color: #cbd5e0;
+    }
+
+    .dark .bg-white {
+      background-color: #2d3748;
+    }
+  </style>
+
+</head>
+
+<body class="flex h-screen bg-gray-100">
+  <aside class="w-64 bg-white shadow-md hidden md:block">
+    <div class="p-4 text-2xl font-bold text-blue-600">CarCare</div>
+    <nav class="mt-6">
+      <ul class="space-y-2 text-gray-700">
+        <li><a href="#" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>หน้าหลัก</a></li>
+        <li><a href="customers.html" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="users" class="w-5 h-5 mr-3"></i>ลูกค้า</a></li>
+        <li><a href="Finance.html" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="dollar-sign" class="w-5 h-5 mr-3"></i>รายได้-รายจ่าย</a></li>
+        <li><a href="staff.html" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="user-check" class="w-5 h-5 mr-3"></i>พนักงาน</a></li>
+        <li><a href="Reports.html" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="file-bar-chart" class="w-5 h-5 mr-3"></i>รายงาน</a></li>
+        <li><a href="Settings.html" class="flex items-center p-3 hover:bg-gray-100"><i data-lucide="settings" class="w-5 h-5 mr-3"></i>การตั้งค่าระบบ</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <div class="flex flex-col flex-1">
+    <header class="flex items-center justify-between bg-white shadow px-6 py-4">
+      <div class="flex items-center space-x-4">
+        <input type="text" placeholder="ค้นหา..." class="px-4 py-2 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+      <div class="flex items-center space-x-4">
+        <button><i data-lucide="bell" class="w-6 h-6 text-gray-600 hover:text-blue-500"></i></button>
+        <img src="https://i.pravatar.cc/40?img=3" alt="User" class="w-8 h-8 rounded-full">
+      </div>
+    </header>
+
+    <main class="flex-1 p-6">
+      <h1 class="text-2xl font-semibold text-gray-800 mb-4">หน้าหลัก</h1>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-1">รายรับวันนี้</h3>
+          <p class="text-2xl font-semibold text-green-600">฿3,500</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-1">รายรับเดือนนี้</h3>
+          <p class="text-2xl font-semibold text-blue-600">฿78,900</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-1">ลูกค้าใหม่</h3>
+          <p class="text-2xl font-semibold text-purple-600">12 คน</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-4">รายชื่อลูกค้าทั้งหมด</h3>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm text-left text-gray-700">
+              <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                <tr>
+                  <th class="px-4 py-2">ชื่อลูกค้า</th>
+                  <th class="px-4 py-2">บริการ</th>
+                  <th class="px-4 py-2">วันที่</th>
+                  <th class="px-4 py-2">เวลา</th>
+                  <th class="px-4 py-2">สถานะ</th>
+                </tr>
+              </thead>
+              <tbody id="pendingBookingsTableBody">
+                <!-- ข้อมูลลูกค้าจะถูกเพิ่มที่นี่ -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-4">สัดส่วนประเภทบริการ</h3>
+          <canvas id="pieChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-4">รายได้ตามประเภทบริการ</h3>
+          <canvas id="barChart" height="200"></canvas>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow">
+          <h3 class="text-gray-600 mb-4">รายได้รายวัน</h3>
+          <canvas id="lineChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        const barCtx = document.getElementById('barChart').getContext('2d');
+        new Chart(barCtx, {
+          type: 'bar',
+          data: {
+            labels: ['ล้างรถ', 'อัดฉีด', 'ทำภายในรถ', 'เคลือบแก้ว', 'อื่นๆ'],
+            datasets: [{
+              label: 'รายได้ (บาท)',
+              data: [3500, 1500, 1200, 2000, 700],
+              backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#6B7280'],
+            }]
+          }
+        });
+
+        const lineCtx = document.getElementById('lineChart').getContext('2d');
+        new Chart(lineCtx, {
+          type: 'line',
+          data: {
+            labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+            datasets: [{
+              label: 'รายได้รายวัน',
+              data: [1200, 2300, 1800, 2100, 2500, 3200, 2800],
+              borderColor: '#6366F1',
+              backgroundColor: 'rgba(99, 102, 241, 0.2)',
+              fill: true,
+              tension: 0.3,
+            }]
+          }
+        });
+
+        const pieCtx = document.getElementById('pieChart').getContext('2d');
+        new Chart(pieCtx, {
+          type: 'pie',
+          data: {
+            labels: ['ล้างรถ', 'อัดฉีด', 'ทำภายในรถ', 'เคลือบแก้ว'],
+            datasets: [{
+              data: [40, 25, 15, 20],
+              backgroundColor: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'],
+            }]
+          }
+        });
+      </script>
+    </main>
+  </div>
+  <div id="notifications" class="absolute top-16 right-6 bg-white shadow-lg rounded-lg p-4 hidden">
+    <p class="text-gray-700">คุณมีการจองใหม่ 2 รายการ</p>
+  </div>
+</body>
+
+</html>
